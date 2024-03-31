@@ -159,18 +159,36 @@ public class App {
                         int employeesInput = sc.nextInt();
                         switch (employeesInput) {
                             case 1:
-                                
+                               Emp_in();
+
                                 break;
+
                             case 2:
+
+                                emp_update();
+
                                 break;
+
                             case 3:
+
+                                emp_delete();
+
                                 break;
+
                             case 4:
+
+                                emp_viewsalesrep();
+
                                 break;
+
                             default:
+
                                 System.out.println("===========================\n");
+
                                 System.out.println("Invalid choice. Going back to main menu\n");
+
                                 break;
+
                             }
                         break;
                     case 4: //office
