@@ -36,6 +36,7 @@ public class App {
 
         System.out.print("Enter choice: ");
         int inputForMainMenu = sc.nextInt();
+        clearScreen();
         System.out.println("===========================");
 
 
@@ -50,6 +51,8 @@ public class App {
                 System.out.print("Enter choice: ");
 
                 int recordsInput = sc.nextInt();
+                clearScreen();
+            
                 switch (recordsInput) {
                     case 1: //products
                         System.out.println("===========================");
@@ -62,6 +65,8 @@ public class App {
                         System.out.println("===========================");
                         System.out.print("Enter choice: ");
                         int productsInput = sc.nextInt();
+                        clearScreen();
+                        
                         switch (productsInput) {
                             case 1: // Create new product
 
@@ -103,31 +108,37 @@ public class App {
                         System.out.println("===========================");
                         System.out.print("Enter choice: ");
                         int customersInput = sc.nextInt();
+                        clearScreen();
+                        
                         switch (customersInput) {
-                            case 1:
+                           case 1:
 
+                            //System.out.println("test");
 
+                                Customer.createCustomer();
 
                                 break;
+
+
 
                             case 2:
 
-
-
+                                Customer.updateCustomer();
 
                                 break;
+
                             case 3:
 
-
-
+                                Customer.deleteCustomer();
 
                                 break;
+
                             case 4:
 
-
-
+                                Customer.customerViewOrders();
 
                                 break;
+                                
                             default:
                                 System.out.println("===========================\n");
                                 System.out.println("Invalid choice. Going back to main menu\n");
@@ -269,14 +280,53 @@ public class App {
                         break;
                 
                     case 2: //payment
+ System.out.println("\n1. Create a new Payment");
+
+                        System.out.println("2. Update a Payment");
+
+                        System.out.println("3. Delete a Payment\n");
+
+                        System.out.println("===========================");
+
+                        System.out.print("Enter choice: ");
+
+                        int payment_input = sc.nextInt();
+
+                        switch (payment_input) {
+
+                            case 1:
+
+                                Payments.createPayment();
+
+                                break;
+
+                        
+
+                            case 2:
+
+                                Payments.updatePayment();
+
+                                break;
 
 
-                        break;
+
+                            case 3:
+
+                                Payments.deletePayment();
+
+                                break;
 
 
 
+                            default:
 
+                                System.out.println("===========================\n");
 
+                                System.out.println("Invalid choice. Going back to main menu\n");
+
+                                break;
+
+                        }
                     default:
                         System.out.println("===========================\n");
                         System.out.println("Invalid choice. Going back to main menu\n");
@@ -321,6 +371,13 @@ public class App {
         }
         }// end of while loop
     sc.close();
+        }
+
+        public static void clearScreen() {  
+
+        System.out.print("\033\143");//https://stackoverflow.com/questions/2979383/how-to-clear-the-console-using-java
+
+        System.out.flush(); 
 
 
 
