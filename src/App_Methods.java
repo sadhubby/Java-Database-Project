@@ -421,7 +421,6 @@ public class App_Methods {
                         query_product = query_rs.getString("productCode");
                         if(product_code == query_product){
                             System.out.println("Found product");
-                            
                         }
                         product_code_loop = 0;
                     }
@@ -460,6 +459,7 @@ public class App_Methods {
                 }
                 else{
                     System.out.println("Order did not create");
+                    con.rollback();
                 }
                 query_final_order = "INSERT INTO orderdetails VALUES (?, ?, ?, ?, ?)";
                 try(PreparedStatement query_pst_od = con.prepareStatement(query_final_order)){
@@ -470,15 +470,21 @@ public class App_Methods {
                     query_pst_od.setShort(5, orderLineNumber);
                     if(query_pst_od.executeUpdate() == 1){
                         System.out.println("Order created");
+                        con.commit();
                     }
                     else{
                         System.out.println("Order failed");
+                        con.rollback();
                     }
                 }catch(SQLException e){System.err.println(e.getMessage());}
             }catch(SQLException e){System.err.println(e.getMessage());}
 
         }
-      
+        else{
+            con.rollback();
+        }
+        con.close();
+
         } catch(SQLException e){System.err.println("SQL Exception:");
         System.err.println("Message: " + e.getMessage());
         System.err.println("SQL State: " + e.getSQLState());
@@ -671,6 +677,7 @@ public class App_Methods {
             if(if_on_exists_rs.next()){
                 order_number_select = if_on_exists_rs.getInt("orderNumber");
                 if(ordernumber == order_number_select){
+                    System.out.println("Order number exists");
                     stopper = 0;
                 }
                 }
