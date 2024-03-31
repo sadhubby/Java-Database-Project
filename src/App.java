@@ -20,6 +20,8 @@ public class App {
     Scanner sc = new Scanner(System.in);  
    
     int stopper = 1;
+
+    App_Methods.if_connected();
     while(stopper == 1){
 
         System.out.println("===========================");

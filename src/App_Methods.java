@@ -3,9 +3,24 @@ import java.time.LocalDate;
 import java.util.Scanner;
 
 
-
 public class App_Methods {
     static Scanner sc = new Scanner(System.in);
+
+    public static void if_connected() {
+    	try {
+    		Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/dbsales?useTimezone=true&serverTimezone=UTC&user=root&password=12345");
+            if (con != null) {
+            	System.out.println("Connected to database");   	
+            }
+            else {
+            	System.out.println("Failed to connect to the database...");
+            }
+    	con.close();
+    	}catch(Exception e) {System.out.println(e.getMessage());}
+    }
+
 
 
     public static void product_insert(){
@@ -684,6 +699,18 @@ public class App_Methods {
              }catch(Exception e){System.err.println(e.getMessage());}
         }catch(Exception e){System.err.println(e.getMessage());}
         }while(stopper == 1);
+        
+        String show_product = "SELECT * FROM orders o LEFT JOIN orderdetails od ON o.orderNumber = od.orderNumber WHERE o.orderNumber = ?" ;
+        try(PreparedStatement show_ps = con.prepareStatement(show_product)){
+            show_ps.setInt(1, ordernumber);
+            try(ResultSet show_rs = show_ps.executeQuery()){
+                if(show_rs.next()){
+                    String product_code_before = show_rs.getString("productCode");
+                    System.out.println("Product code: " + product_code_before);
+                }
+            }catch(Exception e){System.err.println(e.getMessage());}
+        }catch(Exception e){System.err.println(e.getMessage());}
+
 
         do{
             System.out.print("Enter new product code: ");
