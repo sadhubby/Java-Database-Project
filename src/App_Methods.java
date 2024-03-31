@@ -354,7 +354,7 @@ public class App_Methods {
     }
 
 
-    private static int maxOrderNumber() throws SQLException{
+    private static int maxOrderNumber(){
 
 
         try{
