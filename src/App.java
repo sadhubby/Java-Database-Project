@@ -163,41 +163,60 @@ public class App {
                             }
                         break;
                     case 4: //office
-                    // since this is not mine anymore, edit the menu as you please
-                        System.out.println("===========================");
-                        System.out.println("OFFICE MANAGEMENT MENU");
-                        System.out.println("===========================\n");
-                        System.out.println("1. Create a new Office");
-                        System.out.println("2. Update a record of an Office");
-                        System.out.println("3. Delete a record of an Office");
-                        System.out.println("4. View an Office and list of Employees \n");
-                        System.out.println("===========================");
-                        System.out.print("Enter choice: ");
-                        int officesInput = sc.nextInt();
-                        switch (officesInput) {
-                            case 1:
-                                
+                     // since this is not mine anymore, edit the menu as you please
 
-                                break;
-                        
-                            case 2:
+                         System.out.println("===========================");
+                         System.out.println("OFFICE MANAGEMENT MENU");
+                         System.out.println("===========================\n");
+                         System.out.println("1. Create a new Office");
+                         System.out.println("2. Update a record of an Office");
+                         System.out.println("3. Delete a record of an Office");
+                         System.out.println("4. View an Office and list of Employees \n");
+                         System.out.println("===========================");
+                         System.out.print("Enter choice: ");
 
+                         int officesInput = sc.nextInt();
 
-                                break;
-                            case 3:
+                         switch (officesInput) {
+                             case 1: 
+                                 
+                                 App_Methods.office_insert();
+ 
+                                 break;
 
-
-                                break;
-                            case 4:
+                         
+                             case 2:
 
 
-                                break;
-                            default:
-                                System.out.println("===========================\n");
-                                System.out.println("Invalid choice. Going back to main menu\n");
-                                break;
-                            }
-                        break;
+                                 App_Methods.office_update();
+
+                                 break;
+
+                             case 3:
+
+                                 App_Methods.office_delete();
+
+                                 break;
+
+                             case 4:
+
+
+                                 App_Methods.office_viewemployees();
+
+
+                                 break;
+
+                             default:
+
+                                 System.out.println("===========================\n");
+
+                                 System.out.println("Invalid choice. Going back to main menu\n");
+
+                                 break;
+
+                             }
+
+                         break;
 
 
 
