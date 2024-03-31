@@ -1,9 +1,8 @@
 import java.sql.*;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
 import java.util.Scanner;
+
+
 
 public class App_Methods {
     static Scanner sc = new Scanner(System.in);
@@ -354,7 +353,35 @@ public class App_Methods {
 
     }
 
-    public static void order_create(){
+
+    private static int maxOrderNumber() throws SQLException{
+
+
+        try{
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/dbsales","root","12345"
+            );
+        String max_order = "SELECT MAX(orderNumber) AS max_order FROM orders";
+        try(PreparedStatement max_order_ps = con.prepareStatement(max_order)){
+            try(ResultSet max_order_rs = max_order_ps.executeQuery()){
+            if(max_order_rs.next()){
+             int maxOrder = max_order_rs.getInt("max_order");
+                if(maxOrder == 0){
+                    return 9999;
+                }
+             return maxOrder + 1;
+            }
+             }
+        }
+     con.close();
+        
+        } catch(Exception e){System.out.println(e);}
+        return 9999;
+        }
+
+
+    public static void order_create(){ // to be chasned
 
         try{
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -362,161 +389,96 @@ public class App_Methods {
                 "jdbc:mysql://localhost:3306/dbsales","root","12345"
             );
             con.setAutoCommit(false);  
-          
-            int quantity;
-            int get_base_quantity;
-            int stopper = 1;
+        
+        int         orderNumber = maxOrderNumber();
+        String      product_code;
+        int         quantityOrdered;
+        double      priceEach;
+        short         orderLineNumber;
+        LocalDate   reqDate;
+        LocalDate   orderDate;
+        String      status = "In Process";
+        String      comments;
+        int         customerNum = 0;
+      
+        int         product_code_loop = 1;
+   
+        String      query_product;
+       
+        orderDate = LocalDate.now();
+        reqDate = orderDate.plusDays(15);
+        
 
-            System.out.print("Enter customer number: ");
-            int customer_number_input = sc.nextInt();
 
-            String if_customer_exists = "SELECT * FROM orders WHERE customerNumber = " + customer_number_input;
-            
-            PreparedStatement ps_if_customer_exists = con.prepareStatement(if_customer_exists);
+        do{
+            System.out.print("Enter product code: ");
+            product_code = sc.nextLine();
 
-            ResultSet if_customer_exists_rs = ps_if_customer_exists.executeQuery();
-
-
-
-            if (if_customer_exists_rs.next()){
-                System.out.println("Customer found\n");
-
-               int customer_code = if_customer_exists_rs.getInt("customerNumber");
-                do{
-                System.out.print("Enter product code to buy: ");
-
-                    String product_code= sc.next();
-
-                    String if_productCode_exists = "SELECT * FROM products WHERE productCode = '" + product_code + "'";
-                    PreparedStatement if_productCode_ps = con.prepareStatement(if_productCode_exists);
-                    ResultSet productCode_rs = if_productCode_ps.executeQuery();
-
-                    if(productCode_rs.next()){
-                        System.out.println("Found the product");
-                        String find_name = "SELECT productName FROM products WHERE productCode = '" + product_code + "'";
-                        PreparedStatement find_name_ps = con.prepareStatement(find_name);
-                        ResultSet find_name_rs = find_name_ps.executeQuery();
-                        while(find_name_rs.next()){
-                            String name = find_name_rs.getString("productName");
-                            System.out.println("Product name: "+ name);
-                        }
-
-                        System.out.print("Do you want to buy this product: ");
-                        char y_or_n = sc.next().charAt(0);
-                        if(y_or_n == 'y' || y_or_n == 'Y'){
-                        
-                            System.out.print("How many: ");
-                            quantity = sc.nextInt();
-                            int current_quantity = 0;
-
-                            String base_quantity = "SELECT quantityInStock FROM products WHERE productCode = " + product_code;
-                            PreparedStatement base_quantity_ps = con.prepareStatement(base_quantity);
-                            ResultSet base_quantity_rs = base_quantity_ps.executeQuery();
+            String query = "SELECT * FROM products WHERE productCode = " + product_code;
+            try(PreparedStatement query_ps = con.prepareStatement(query)){
+                try(ResultSet query_rs = query_ps.executeQuery()){
+                    if(query_rs.next()){
+                        query_product = query_rs.getString("productCode");
+                        if(product_code == query_product){
+                            System.out.println("Found product");
                             
-                            
-                            while(base_quantity_rs.next()){
-                            get_base_quantity = base_quantity_rs.getInt("quantityInStock");
-                            
-                            if((quantity <= get_base_quantity)){
-                            current_quantity = current_quantity + quantity;
-                            String update_quantity = "UPDATE products SET quantityInStock = quantityInStock - " + current_quantity +" WHERE productCode = '" +product_code +"'"; 
-                            PreparedStatement update_ps = con.prepareStatement(update_quantity);
-                            update_ps.executeUpdate();
-
-                                System.out.println("You have ordered " +quantity+ " of this product");
-
-                                System.out.print("Do you want to buy another (Y/N): ");
-                                char y_or_n_loop = sc.next().charAt(0);
-                                if(y_or_n_loop == 'y' || y_or_n_loop == 'Y'){
-                                    System.out.println("Continuing...\n\n");
-
-                                }
-
-                                else{
-                                    LocalDateTime order_date_now = LocalDateTime.now();
-                                  
-                                    Date currentDate = Date.valueOf(order_date_now.toLocalDate());  
-                                   
-                                    
-                                    java.sql.Date req_date = null;
-                                
-                                    System.out.println("\nWhen is it required? (yyyy-MM-dd): ");
-                                    String input_req = sc.next();
-                                    
-                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                                    try{
-                                    java.util.Date input_date = dateFormat.parse(input_req);
-                                    java.sql.Date input_date_sql = new java.sql.Date(input_date.getTime());
-                                    req_date = input_date_sql;
-                                    } catch(ParseException e){
-                                        System.out.println("Invalid date format");
-                                    }
-
-                                    System.out.print("Any comments on order: ");
-                                    sc.nextLine();
-                                    String comments = sc.nextLine();
-
-                                    System.out.println("\nOrder Transaction ");
-                                    // show details of transaction:
-                                    String maxOrderNumber = "SELECT MAX(orderNumber) as max_order FROM orders";
-                                    Statement max_order = con.createStatement();
-                                    ResultSet max_order_rs =max_order.executeQuery(maxOrderNumber);
-                                   
-                                    if(max_order_rs.next()){
-                                      int get_max = max_order_rs.getInt("max_order");
-                                      System.out.println("Order Number: " + get_max);
-                                      System.out.println("Order date: " + currentDate);
-                                      System.out.println("Order required date: " + req_date);
-                                      System.out.println("Comments: " + comments);
-                                    
-                                      System.out.println("Do you want to complete transaction: ");
-                                      char end_transaction = sc.next().charAt(0);
-
-                                      if(end_transaction== 'y' || end_transaction == 'Y'){
-                                        String insert_order = "INSERT INTO orders " + "(orderNumber, orderDate, requiredDate, status, comments, customerNumber) VALUES (?, ?, ?, ?, ?, ?)";
-                                        PreparedStatement insert_order_ps = con.prepareStatement(insert_order);
-                                        insert_order_ps.setInt(1, get_max + 1);
-                                        insert_order_ps.setDate(2, currentDate);
-                                        insert_order_ps.setDate(3, req_date);
-                                        insert_order_ps.setString(4, "In Process");
-                                        insert_order_ps.setString(5, comments);
-                                        insert_order_ps.setInt(6, customer_code);
-                                        insert_order_ps.executeUpdate();
-
-                                        System.out.println("Transaction completed");
-                                            con.commit();
-                                            stopper = 0;
-                                        }
-                                        else{
-                                            System.out.println("Transaction rescinded. Doing rollback...");
-                                            con.rollback();
-                                            stopper = 0;
-                                        }
-
-                                    }
-                                }
-                            }
-                            else{
-                                System.out.println("Not enough quantity in stock for order");
-                              
-                            }
                         }
-                        }
+                        product_code_loop = 0;
+                    }
+                }catch(Exception e){System.out.println(e.getMessage());}
+            }catch(Exception e){System.out.println(e.getMessage());}
+        }while(product_code_loop == 1);
 
+
+
+        System.out.print("Enter quantity: ");
+        quantityOrdered = sc.nextInt();
+        System.out.print("Enter price each:" );
+        priceEach = sc.nextDouble();
+        System.out.print("Enter Order Line Number: ");
+        orderLineNumber = sc.nextShort();
+
+        sc.nextLine();
+        System.out.print("Enter comments: ");
+        comments = sc.nextLine();
+        System.out.print("Enter customer: ");
+        customerNum = sc.nextInt();
+
+        System.out.print("Finalize order? ");
+        char y_or_n = sc.next().charAt(0);
+        if(y_or_n == 'y' || y_or_n == 'Y'){
+            String query_final_order = "INSERT INTO orders VALUES (?, ?, ?, ?, ?, ?, ?)";
+            try(PreparedStatement query_pst = con.prepareStatement(query_final_order)){
+                query_pst.setInt(1, orderNumber);
+                query_pst.setString(2, orderDate.toString());
+                query_pst.setString(3, reqDate.toString());
+                query_pst.setString(4, null);
+                query_pst.setString(5, status);
+                query_pst.setString(6, comments);
+                query_pst.setInt(7, customerNum);
+                if(query_pst.executeUpdate() == 1){
+                }
+                else{
+                    System.out.println("Order did not create");
+                }
+                query_final_order = "INSERT INTO orderdetails VALUES (?, ?, ?, ?, ?)";
+                try(PreparedStatement query_pst_od = con.prepareStatement(query_final_order)){
+                    query_pst_od.setInt(1, orderNumber);
+                    query_pst_od.setString(2, product_code);
+                    query_pst_od.setInt(3, quantityOrdered);
+                    query_pst_od.setDouble(4, priceEach);
+                    query_pst_od.setShort(5, orderLineNumber);
+                    if(query_pst_od.executeUpdate() == 1){
+                        System.out.println("Order created");
                     }
                     else{
-                        System.out.println("Invalid input, going back to main menu...");
-                        stopper = 0;
-                    }    
+                        System.out.println("Order failed");
+                    }
+                }catch(SQLException e){System.err.println(e.getMessage());}
+            }catch(SQLException e){System.err.println(e.getMessage());}
 
-                }while(stopper == 1);
-            }
-            else{
-                System.out.println("Customer does not exist\n");
-            }
-            con.setAutoCommit(true);
-            con.close();
-            
+        }
+      
         } catch(SQLException e){System.err.println("SQL Exception:");
         System.err.println("Message: " + e.getMessage());
         System.err.println("SQL State: " + e.getSQLState());
@@ -527,30 +489,336 @@ public class App_Methods {
             e.printStackTrace();
         }
 
-
-
     } // end of create new order
+    
 
-        {// shows if db is connected or not
+
+    public static void update_orderdetails(String column, String update, int ordernum, int datatype){
         try{
             Class.forName("com.mysql.cj.jdbc.Driver");
             Connection con = DriverManager.getConnection(
                 "jdbc:mysql://localhost:3306/dbsales","root","12345"
             );
          
-        if(con == null){
-            System.out.println("Not Connected");
-        }
-        else{
-            System.out.println("Connected");
-        }
+            String query_update = "UPDATE orderdetails SET " + column + " = ? WHERE orderNumber = ?";
+            try(PreparedStatement query_ps = con.prepareStatement(query_update)){
+                switch(datatype){
+                    case 1: query_ps.setString(1, update);
+                            break;
+                    case 2: query_ps.setShort(1, Short.parseShort(update));
+                            break;
+                    case 3: query_ps.setDouble(1, Double.parseDouble(update));
+                            break;
+                    case 4: query_ps.setInt(1, Integer.parseInt(update));
+                            break;
+                }
+                query_ps.setInt(2, ordernum);
+                query_ps.executeUpdate();
+                if(query_ps.executeUpdate() == 1){
+                    System.out.println("Order updated");
+                 
+                }
+                con.close();
+            } catch (SQLException e) {
+                System.err.println("error updating " + e.getMessage());
+                System.err.println(e.getErrorCode());
+            }
+        
 
         
-        con.close();
+      
+        } catch(Exception e){System.out.println(e.getMessage());}
+        }
+    
+    public static void update_orderstable(String column, String update, int ordernum, int datatype){
+        try{
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/dbsales","root","12345"
+            );
+            String query_update = "UPDATE orders SET " + column + " = ? WHERE orderNumber = ?";
+            try(PreparedStatement query_ps = con.prepareStatement(query_update)){
+                switch(datatype){
+                    case 1 -> query_ps.setString(1, update);
+                    case 2 -> query_ps.setShort(1, Short.parseShort(update));
+                    case 3 -> query_ps.setDouble(1, Double.parseDouble(update));
+                    case 4 -> query_ps.setInt(1, Integer.parseInt(update));
+                }
+                query_ps.setInt(2, ordernum);
+            
+                if(query_ps.executeUpdate() == 1){
+                   
+                    System.out.println("Order updated");
+                }
+                else{
+                    System.out.println("Did not update");
+                }
+                con.close();
+            } catch (Exception e) {
+
+            }
+        
+
+        
+      
         } catch(Exception e){System.out.println(e);}
         }
     
+    
+    public static void delete_order(){
+        int ordernumber;
+        int stopper = 1;
+        String product_code = null;
+        String product_code_input;
+        boolean isValid = false;
+        try{
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/dbsales","root","12345"
+                );
+
+        do{
+        System.out.print("Enter order number: ");
+        ordernumber = sc.nextInt();
+        
+        String ordernumber_find = "SELECT * FROM orders WHERE orderNumber = " + ordernumber + " AND status = 'In Process'";
+          try(PreparedStatement ordernumber_ps = con.prepareStatement(ordernumber_find)){
+            ResultSet ordernumber_rs = ordernumber_ps.executeQuery();
+                if(ordernumber_rs.next()){
+                    stopper = 0;
+                }
+          }catch(SQLException e){e.printStackTrace();}
+
+        }while(stopper == 1);
+        
+
+  
+        String select_product = "SELECT productCode FROM orders o LEFT JOIN orderdetails od ON o.orderNumber = od.orderNumber WHERE o.orderNumber = " + ordernumber;
+        try(PreparedStatement select_product_ps = con.prepareStatement(select_product)){
+            try(ResultSet select_rs = select_product_ps.executeQuery()){
+                
+                while(select_rs.next()){
+                    product_code = select_rs.getString("productCode");
+                    System.out.println("Products under the order ");
+                    System.out.println(product_code);
+
+                }
+            }catch(SQLException e){System.err.println(e.getMessage()); System.err.println(e.getErrorCode());}
+
+        }catch (SQLException e){System.err.println(e.getMessage()); System.err.println(e.getErrorCode());}
+   
+        do{
+            sc.nextLine();
+            System.out.print("Select product to delete: ");
+            product_code_input = sc.nextLine();
+            if(product_code.equals(product_code_input)){
+                isValid = true;
+                break;
+            }
+        }while(isValid = false);
 
 
+
+
+
+        String deletequery = "UPDATE orderdetails SET productCode = ? WHERE orderNumber = ?";
+        try(PreparedStatement deletequery_ps = con.prepareStatement(deletequery)){
+            deletequery_ps.setString(1, null);
+            deletequery_ps.setInt(2, ordernumber);
+            if(deletequery_ps.executeUpdate() == 1){
+                System.out.println("Deleted a product");
+            }
+            else{
+                System.out.println("Error deleting product");
+            }
+
+        }catch(Exception e){System.err.println(e.getMessage());}
+
+    } catch(SQLException e){System.err.println("SQL Exception:");
+            System.err.println("Message: " + e.getMessage());
+            System.err.println("SQL State: " + e.getSQLState());
+            System.err.println("Error Code: " + e.getErrorCode());
+            System.err.println("Stack Trace:");e.printStackTrace();
+            }catch (ClassNotFoundException e) {
+        
+                e.printStackTrace();
+            }
 }
+
+
+
+   public static void update_order_product(){
+
+    int ordernumber;
+    String product_code_input;
+    String product_code_select = null;
+    int stopper = 1;
+    int stopper_2  = 1;
+    int order_number_select;
+
+    try{
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        Connection con = DriverManager.getConnection(
+            "jdbc:mysql://localhost:3306/dbsales","root","12345"
+            );
+        do{
+        System.out.print("Enter order number: ");
+        ordernumber = sc.nextInt();
+    
+        String if_ordernumber_exists = "SELECT o.orderNumber FROM orders o LEFT JOIN orderdetails od ON o.orderNumber = od.orderNumber WHERE o.orderNumber = " + ordernumber +" AND status = 'In Process'";
+        try(PreparedStatement if_on_exists_ps = con.prepareStatement(if_ordernumber_exists)){
+            try(ResultSet if_on_exists_rs = if_on_exists_ps.executeQuery()){
+            if(if_on_exists_rs.next()){
+                order_number_select = if_on_exists_rs.getInt("orderNumber");
+                if(ordernumber == order_number_select){
+                    stopper = 0;
+                }
+                }
+             }catch(Exception e){System.err.println(e.getMessage());}
+        }catch(Exception e){System.err.println(e.getMessage());}
+        }while(stopper == 1);
+
+        do{
+            System.out.print("Enter new product code: ");
+            sc.nextLine();
+            product_code_input = sc.nextLine();
+            String if_product_exists = "SELECT od.productCode FROM orders o LEFT JOIN orderdetails od ON o.orderNumber = od.orderNumber AND od.orderNumber = " + ordernumber;
+            try(PreparedStatement if_product_exists_ps = con.prepareStatement(if_product_exists)){
+                try(ResultSet if_product_exists_rs = if_product_exists_ps.executeQuery()){
+                    if(if_product_exists_rs.next()){
+                        product_code_select = product_code_input;
+                        stopper_2 = 0;
+                    }
+                }catch(Exception e){System.err.println(e.getMessage());}
+            }catch(Exception e){System.err.println(e.getMessage());}
+        }while(stopper_2 == 1);
+
+
+        String update_order_product = "UPDATE orderdetails SET productCode = ? WHERE orderNumber = ?";
+        try(PreparedStatement update_order_product_ps = con.prepareStatement(update_order_product)){
+            update_order_product_ps.setString(1, product_code_input);
+            update_order_product_ps.setInt(2, ordernumber);
+            if(update_order_product_ps.executeUpdate()== 1){
+                System.out.println("Updated successfully");
+            }
+            else{
+                System.out.println("Did not update... going back to main menu");
+                con.close();
+            }
+        }catch(Exception e){System.err.println(e.getMessage());}
+
+   }catch(Exception e){System.err.println(e.getMessage());}
+    
+   }
+
+
+    public static void update_order(){
+        int orderNumber ;
+        
+        int index;
+    
+        int stoploop = 0;
+
+    try{
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        Connection con = DriverManager.getConnection(
+            "jdbc:mysql://localhost:3306/dbsales","root","12345"
+            );
+         
+        do{
+          System.out.print("Enter order number: ");
+          orderNumber = sc.nextInt();
+
+          String ordernumber_find = "SELECT * FROM orders WHERE orderNumber = " + orderNumber + " AND status = 'In Process' ";
+          try(PreparedStatement ordernumber_ps = con.prepareStatement(ordernumber_find)){
+            ResultSet ordernumber_rs = ordernumber_ps.executeQuery();
+                if(ordernumber_rs.next()){
+                    stoploop = 1;
+                }
+          }catch(SQLException e){e.printStackTrace();}
+        }while(stoploop == 0);  
+
+        String query = "SELECT * FROM orders o LEFT JOIN orderdetails od ON o.orderNumber = od.orderNumber WHERE o.orderNumber= ?";
+        try(PreparedStatement query_ps = con.prepareStatement(query)){
+            query_ps.setInt(1, orderNumber);
+            try(ResultSet query_rs = query_ps.executeQuery()){
+                if(query_rs.next()){
+                    System.out.println("Current Details");
+                    System.out.println("Order Number: " + query_rs.getInt("orderNumber"));
+                    System.out.println("Customer Code: "+ query_rs.getInt("customerNumber"));
+                    System.out.println("1. Product Code: " + query_rs.getString("productCode"));
+                    System.out.println("2. Quantity: " + query_rs.getInt("quantityOrdered"));
+                    System.out.println("3. Price Each: " + query_rs.getDouble("priceEach"));
+                    System.out.println("4. Order Line Number: " + query_rs.getInt("orderLineNumber"));
+                    System.out.println("5. Status: " + query_rs.getString("status"));
+                    System.out.println("6. Comments: " + query_rs.getString("comments"));
+                
+                    
+                        System.out.print("Select what to update: ");
+                        index = sc.nextInt();
+                  
+                    switch(index){
+                        case 1:
+                            System.out.print("Enter product: ");
+                            String product_code = sc.nextLine();
+                            String product_update = String.valueOf(product_code);
+                            update_orderdetails("productCode", product_update, orderNumber, 1);
+
+                            break;
+                        case 2:
+                            System.out.print("Enter quantity: ");
+                            int quantity = sc.nextInt();
+                            String quantity_update = String.valueOf(quantity);
+                            update_orderdetails("quantityOrdered", quantity_update, orderNumber, 4);
+                
+                            break;
+                        case 3:
+                            System.out.print("Enter price each: ");
+                            Double price = sc.nextDouble();
+                            String price_udpate = String.valueOf(price);
+                            update_orderdetails("priceEach", price_udpate, orderNumber, 3);
+                    
+                            break;
+                        case 4:
+                            System.out.print("Enter order line number: ");
+                            int orderline = sc.nextInt();
+                            String orderline_update = String.valueOf(orderline);
+                            update_orderdetails("orderLineNumber", orderline_update, orderNumber, 4);
+                            
+                            break;
+                        case 5:
+                            System.out.print("Enter status: ");
+                            sc.nextLine();
+                            String status = sc.nextLine();
+                            String status_update = String.valueOf(status);
+                            update_orderstable("status", status_update, orderNumber, 1);
+                           
+                            break;
+                        case 6:
+                            System.out.print("Enter comments: ");
+                            sc.nextLine();
+                            String comments = sc.nextLine();
+                            String comments_update = String.valueOf(comments);
+                            update_orderstable("comments", comments_update, orderNumber, 1);
+                            break;
+                    }
+                    
+                con.close();
+                
+                }
+            }
+        }
+        
+    } catch(SQLException e){System.err.println("SQL Exception:");
+    System.err.println("Message: " + e.getMessage());
+    System.err.println("SQL State: " + e.getSQLState());
+    System.err.println("Error Code: " + e.getErrorCode());
+    System.err.println("Stack Trace:");e.printStackTrace();
+    }catch (ClassNotFoundException e) {
+
+        e.printStackTrace();
+    }
+    }
+}
+
 

@@ -37,7 +37,7 @@ public class App {
         System.out.println("===========================");
 
 
-        if (inputForMainMenu == 1){// record management
+        if (inputForMainMenu == 1){// record management2
                 System.out.println("RECORD MANAGEMENT MENU");
                 System.out.println("===========================");
                 System.out.println("\n1. Products");
@@ -230,19 +230,20 @@ public class App {
                                 break;
                         
                             case 2:
+                                App_Methods.update_order();
+                            
                                 break;
-
                             case 3:
+
+                                App_Methods.update_order_product();
                                 break;
                             case 4:
+                                App_Methods.delete_order();
                                 break;
                             default:
                                 System.out.println("===========================\n");
                                 System.out.println("Invalid choice. Going back to main menu\n");
                         }
-
-
-
 
                         break;
                 
