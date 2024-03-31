@@ -853,6 +853,762 @@ public class App_Methods {
         e.printStackTrace();
     }
     }
+    
+     public static void office_insert() {
+
+        int stopper = 1;
+
+        do {
+
+            try {
+
+                // input office details
+
+                System.out.print("Enter office code: ");
+
+                String office_code = sc.nextLine();
+
+                System.out.print("Enter city: ");
+
+                String office_city = sc.nextLine();
+
+                System.out.print("Enter phone: ");
+
+                String office_phone = sc.nextLine();
+
+                System.out.print("Enter address line 1: ");
+
+                String office_addressline1 = sc.nextLine();
+
+                System.out.print("Enter address line 2: ");
+
+                String office_addressline2 = sc.nextLine();
+
+                System.out.print("Enter state: ");
+
+                String office_state = sc.nextLine();
+
+                System.out.print("Enter country: ");
+
+                String office_country = sc.nextLine();
+
+                System.out.print("Enter postal code: ");
+
+                String office_postalcode = sc.nextLine();
+
+                System.out.print("Enter territory: ");
+
+                String office_territory = sc.nextLine();
+
+    
+
+                // establish connection
+
+                Class.forName("com.mysql.cj.jdbc.Driver");
+
+                Connection con = DriverManager.getConnection(
+
+                        "jdbc:mysql://localhost:3306/dbsales", "admin", "DLSU1234"
+
+                );
+
+    
+
+                PreparedStatement stmt;
+
+                String query = "INSERT INTO offices " +
+
+                        "(officeCode, city, phone, addressLine1, addressLine2, state, country, postalCode, territory) " +
+
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+                stmt = con.prepareStatement(query);
+
+                stmt.setString(1, office_code);
+
+                stmt.setString(2, office_city);
+
+                stmt.setString(3, office_phone);
+
+                stmt.setString(4, office_addressline1);
+
+                stmt.setString(5, office_addressline2);
+
+                stmt.setString(6, office_state);
+
+                stmt.setString(7, office_country);
+
+                stmt.setString(8, office_postalcode);
+
+                stmt.setString(9, office_territory);
+
+    
+
+                int rowsInserted = stmt.executeUpdate();
+
+    
+
+                // check if successful
+
+                if (rowsInserted > 0) {
+
+                    System.out.println("Office created successfully");
+
+                } else {
+
+                    System.out.println("Failed to create office");
+
+                }
+
+    
+
+                // close resources
+
+                stmt.close();
+
+                con.close();
+
+            } catch (ClassNotFoundException e) {
+
+                System.out.println("Mysql jdbc driver not found!");
+
+                e.printStackTrace();
+
+            } catch (SQLException e) {
+
+                System.out.println("Database connection error.");
+
+                e.printStackTrace();
+
+            }
+
+    
+
+            // Ask if the user wants to create another office 
+
+            char insert_loop;
+
+            do {
+
+                System.out.print("Do you want to create another office (Y/N): ");
+
+                insert_loop = Character.toUpperCase(sc.next().charAt(0));
+
+                if (insert_loop == 'N' || insert_loop == 'Y') {
+
+                    sc.nextLine(); // consume newline
+
+                    break;
+
+                } else {
+
+                    System.out.println("Invalid input! Please enter Y or N.");
+
+                }
+
+            } while (true);
+
+    
+
+            if (insert_loop == 'N') {
+
+                stopper = 0;
+
+            }
+
+        } while (stopper == 1);
+
+    }
+
+    
+
+    public static void office_update() {
+
+        int stopper = 1;
+
+        do {
+
+            try { // establish connection
+
+                Class.forName("com.mysql.cj.jdbc.Driver");
+
+                Connection con = DriverManager.getConnection(
+
+                        "jdbc:mysql://localhost:3306/dbsales", "admin", "DLSU1234"
+
+                );
+
+    
+
+                System.out.print("Enter office code: ");
+
+                String office_code = sc.next();
+
+    
+
+                // check if the office exists
+
+                String query_check = "SELECT * FROM offices WHERE officeCode = ?";
+
+                PreparedStatement ps_check = con.prepareStatement(query_check);
+
+                ps_check.setString(1, office_code);
+
+    
+
+                ResultSet rs_check = ps_check.executeQuery();
+
+    
+
+                if (rs_check.next()) {
+
+                    System.out.println("Enter the column you want to update (1-8) or 0 to skip:");
+
+                    if (sc.hasNextInt()) {
+
+                        int col_choice = sc.nextInt();
+
+                        sc.nextLine(); // consume newline
+
+    
+
+                        if (col_choice >= 1 && col_choice <= 8) {
+
+                            String col_name = "";
+
+                            switch (col_choice) {
+
+                                case 1:
+
+                                    col_name = "city";
+
+                                    break;
+
+                                case 2:
+
+                                    col_name = "phone";
+
+                                    break;
+
+                                case 3:
+
+                                    col_name = "addressLine1";
+
+                                    break;
+
+                                case 4:
+
+                                    col_name = "addressLine2";
+
+                                    break;
+
+                                case 5:
+
+                                    col_name = "state";
+
+                                    break;
+
+                                case 6:
+
+                                    col_name = "country";
+
+                                    break;
+
+                                case 7:
+
+                                    col_name = "postalCode";
+
+                                    break;
+
+                                case 8:
+
+                                    col_name = "territory";
+
+                                    break;
+
+                            }
+
+    
+
+                            if (!col_name.isEmpty()) {
+
+                                System.out.println("Old value: " + rs_check.getString(col_name));
+
+                                System.out.print("Enter new value: ");
+
+                                String new_value = sc.nextLine();
+
+    
+
+                                String update_query = "UPDATE offices SET " + col_name + " = ? WHERE officeCode = ?";
+
+                                PreparedStatement ps_update = con.prepareStatement(update_query);
+
+                                ps_update.setString(1, new_value);
+
+                                ps_update.setString(2, office_code);
+
+    
+
+                                int rows_affected = ps_update.executeUpdate();
+
+    
+
+                                if (rows_affected > 0) {
+
+                                    System.out.println("Office record updated successfully!\n");
+
+                                } else {
+
+                                    System.out.println("Failed to update office record\n");
+
+                                }
+
+                                ps_update.close();
+
+                            }
+
+                        } else {
+
+                            System.out.println("Invalid choice!");
+
+                        }
+
+                    } else {
+
+                        System.out.println("Invalid input! Please enter a number.");
+
+                        sc.next(); // consume invalid input
+
+                    }
+
+                } else {
+
+                    System.out.println("Office with code " + office_code + " does not exist!\n");
+
+                }
+
+    
+
+                ps_check.close();
+
+                rs_check.close();
+
+    
+
+                char continue_choice;
+
+                do {
+
+                    System.out.print("Do you want to update another office record? (Y/N): ");
+
+                    continue_choice = Character.toUpperCase(sc.next().charAt(0));
+
+                    if (continue_choice == 'N') {
+
+                        stopper = 0;
+
+                    } else if (continue_choice == 'Y') {
+
+                        stopper = 1;
+
+                    } else {
+
+                        System.out.println("Invalid input! Please enter Y or N.");
+
+                    }
+
+                } while (continue_choice != 'Y' && continue_choice != 'N');
+
+            } catch (ClassNotFoundException e) {
+
+                System.out.println("My sql driver not found!");
+
+                e.printStackTrace();
+
+            } catch (SQLException e) {
+
+                System.out.println("Database connection error.");
+
+                e.printStackTrace();
+
+            }
+
+        } while (stopper == 1);
+
+    }
+
+    
+
+    public static void office_delete() {
+
+        try { // establish connection
+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            Connection con = DriverManager.getConnection(
+
+                "jdbc:mysql://localhost:3306/dbsales", "admin", "DLSU1234"
+
+            );
+
+    
+
+            int stopper = 1;
+
+            do {
+
+                System.out.print("Enter the office code to delete: ");
+
+                String officeCode = sc.next();
+
+    
+
+                // sql query to delete the record with the specified office code
+
+                String deleteQuery = "DELETE FROM offices WHERE officeCode = ?";
+
+                PreparedStatement deleteStatement = con.prepareStatement(deleteQuery);
+
+                deleteStatement.setString(1, officeCode);
+
+    
+
+                try {
+
+                    int rowsAffected = deleteStatement.executeUpdate();
+
+                    if (rowsAffected > 0) {
+
+                        System.out.println("Record with office code " + officeCode + " deleted successfully!");
+
+                    } else {
+
+                        System.out.println("No record found with office code" + officeCode);
+
+                    }
+
+                } catch (SQLException e) {
+
+                    // check if the error code indicates referencing
+
+                    if (e.getErrorCode() == 1451) {
+
+                        System.out.println("Error!! Cannot delete record because it is being referenced by other records");
+
+                    } else {
+
+                        System.out.println(e.getMessage());
+
+                    }
+
+                }
+
+    
+
+                char deleteLoop;
+
+                do {
+
+                    System.out.print("\nDo you want to delete another record? (Y/N): ");
+
+                    deleteLoop = Character.toUpperCase(sc.next().charAt(0));
+
+                    if (deleteLoop == 'Y' || deleteLoop == 'N') {
+
+                        break;
+
+                    } else {
+
+                        System.out.println("Invalid input! Please enter Y or N.");
+
+                    }
+
+                } while (true);
+
+    
+
+                if (deleteLoop == 'N') {
+
+                    stopper = 0;
+
+                }
+
+    
+
+            } while (stopper == 1);
+
+    
+
+            con.close();
+
+        } catch (Exception e) {
+
+            System.out.println("Error: " + e.getMessage());
+
+        }
+
+    }
+
+    
+
+    public static void office_viewemployees() {
+
+        try {
+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            Connection con = DriverManager.getConnection(
+
+                    "jdbc:mysql://localhost:3306/dbsales", "admin", "DLSU1234"
+
+            );
+
+        
+
+            // prompt user to enter the office code
+
+            System.out.print("Enter the office code to view: ");
+
+            String officeCode = sc.next();
+
+        
+
+            // sql query to retrieve employees assigned to the office
+
+            String employeesQuery = "SELECT employeeNumber FROM employees WHERE officeCode = ?";
+
+            PreparedStatement employeesPs = con.prepareStatement(employeesQuery);
+
+            employeesPs.setString(1, officeCode);
+
+        
+
+            ResultSet employeesRs = employeesPs.executeQuery();
+
+        
+
+            // display the list of employee codes assigned to the office
+
+            System.out.println("Employees assigned to office with code " + officeCode + ":");
+
+            while (employeesRs.next()) {
+
+                System.out.println("Employee Number: " + employeesRs.getString("employeeNumber"));
+
+            }
+
+        
+
+            employeesRs.close();
+
+            employeesPs.close();
+
+            con.close();
+
+            } catch (Exception e) {
+
+            System.out.println("Error: " + e.getMessage());
+
+        }
+
+    }
+
+        
+
+    public static void generate_salesreport() {
+
+        try { // connection
+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/dbsales","admin","DLSU1234")) {
+
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");  // format in database
+
+        
+
+                boolean isValid = false;
+
+                int year = 0;
+
+                int month = 0;
+
+        
+
+                while (!isValid) {
+
+                    // prompts user for month and year
+
+                    System.out.print("Enter the year: ");
+
+                    year = sc.nextInt();
+
+                    System.out.print("Enter the month (1-12): ");
+
+                    month = sc.nextInt();
+
+        
+
+                    // Check if there are records in the database for the specified month and year
+
+                    String query = "SELECT COUNT(*) AS count FROM orders WHERE MONTH(orderDate) = ? AND YEAR(orderDate) = ?";
+
+                    try (PreparedStatement stmt = con.prepareStatement(query)) {
+
+                        stmt.setInt(1, month);
+
+                        stmt.setInt(2, year);
+
+                        try (ResultSet rs = stmt.executeQuery()) {
+
+                            rs.next();
+
+                            isValid = rs.getInt("count") > 0;
+
+                            if (!isValid) {
+
+                                System.out.println("No records found for the given month and year. Please try again!");
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+        
+
+                // Generate sales report
+
+                generateSalesReport(con, year, month);
+
+            }
+
+        } catch (ClassNotFoundException | SQLException e) {
+
+            e.printStackTrace();
+
+        }
+
+    }
+
+        
+
+    private static void generateSalesReport(Connection con, int year, int month) throws SQLException {
+
+        // Format the start and end dates for the month
+
+        String startDate = year + "-" + String.format("%02d", month) + "-01 00:00:00";
+
+        int lastDayOfMonth = get_lastDay(year, month);
+
+        String endDate = year + "-" + String.format("%02d", month) + "-" + lastDayOfMonth + " 23:59:59";
+
+        
+
+        // SQL query
+
+        String query = "SELECT o.orderDate, p.productName, SUM(od.quantityOrdered * p.buyPrice) AS total_sales " +
+
+                        "FROM orders o " +
+
+                        "JOIN orderdetails od ON o.orderNumber = od.orderNumber " +
+
+                        "JOIN products p ON od.productCode = p.productCode " +
+
+                        "WHERE o.orderDate BETWEEN ? AND ? " +
+
+                        "GROUP BY o.orderDate, p.productName";
+
+    
+
+        try (PreparedStatement stmt = con.prepareStatement(query)) {
+
+            stmt.setString(1, startDate);
+
+            stmt.setString(2, endDate);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+
+                // Print the sales report
+
+                System.out.println("Sales Report for " + year + "-" + String.format("%02d", month) + ":");
+
+                System.out.println("-----------------------------------------------------------------------");
+
+                System.out.printf("%-20s | %-30s | %-15s%n", "Order Date", "Product Name", "Total Sales");
+
+                System.out.println("-----------------------------------------------------------------------");
+
+    
+
+                double totalSalesOverall = 0;
+
+    
+
+                while (rs.next()) {
+
+                    String orderDate = rs.getTimestamp("orderDate").toString();
+
+                    String productName = rs.getString("productName");
+
+                    double totalSales = rs.getDouble("total_sales");
+
+    
+
+                    System.out.printf("%-20s | %-30s | %-15.2f%n", orderDate, productName, totalSales);
+
+                    totalSalesOverall += totalSales; // Total sales
+
+                }
+
+    
+
+                System.out.println("-----------------------------------------------------------------------");
+
+                System.out.println("Overall Total Sales: $" + String.format("%.2f", totalSalesOverall));
+
+            }
+
+        }
+
+    }    
+
+            
+
+    private static int get_lastDay(int year, int month) {
+
+        switch (month) {
+
+            case 1, 3, 5, 7, 8, 10, 12:
+
+                return 31;
+
+            case 4, 6, 9, 11:
+
+                return 30;
+
+            case 2:
+
+                if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) {
+
+                    return 29; // Leap year
+
+                } else {
+
+                    return 28;
+
+                }
+
+            default:
+
+                return -1; // Invalid month
+
+        }
+
+    }  
 }
 
 
