@@ -560,10 +560,10 @@ public class App_Methods {
             String query_update = "UPDATE orders SET " + column + " = ? WHERE orderNumber = ?";
             try(PreparedStatement query_ps = con.prepareStatement(query_update)){
                 switch(datatype){
-                    case 1 -> query_ps.setString(1, update);
-                    case 2 -> query_ps.setShort(1, Short.parseShort(update));
-                    case 3 -> query_ps.setDouble(1, Double.parseDouble(update));
-                    case 4 -> query_ps.setInt(1, Integer.parseInt(update));
+                    case 1: query_ps.setString(1, update);
+                    case 2: query_ps.setShort(1, Short.parseShort(update));
+                    case 3: query_ps.setDouble(1, Double.parseDouble(update));
+                    case 4: query_ps.setInt(1, Integer.parseInt(update));
                 }
                 query_ps.setInt(2, ordernum);
             
